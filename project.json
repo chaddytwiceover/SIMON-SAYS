@@ -1,0 +1,33 @@
+{
+  "id": "simon-says",
+  "title": "Simon Says Game",
+  "description": "A classic memory game where players must repeat an increasingly complex sequence of colors. Test your memory and concentration skills!",
+  "category": "Game",
+  "technologies": ["HTML", "CSS", "JavaScript"],
+  "features": [
+    "Interactive color sequence gameplay",
+    "Progressive difficulty scaling",
+    "Real-time score tracking",
+    "Visual feedback and animations",
+    "Responsive design"
+  ],
+  "demo_url": "./SIMON SAYS/index.html",
+  "github_url": "",
+  "image": "./SIMON SAYS/screenshot.png",
+  "date_created": "2025-10-08",
+  "status": "completed",
+  "difficulty": "beginner",
+  "estimated_time": "2-3 hours",
+  "learning_objectives": [
+    "DOM manipulation",
+    "Event handling",
+    "Game state management",
+    "CSS animations",
+    "Array operations"
+  ],
+  "file_structure": {
+    "index.html": "Main game interface",
+    "style.css": "Game styling and animations",
+    "script.js": "Game logic and functionality"
+  }
+}
