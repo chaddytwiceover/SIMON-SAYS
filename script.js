@@ -3,12 +3,13 @@ const colors = ["green", "red", "yellow", "blue"];
 let sequence = [];
 let userSequence = [];
 let score = 0;
-let bestScore = 0;
+let bestScore = parseInt(localStorage.getItem('simonSaysBestScore')) || 0;
 let playing = false;
 let gameState = "IDLE"; // IDLE, WATCHING, PLAYING, GAME_OVER
 let difficulty = "medium";
 let startTime = 0;
 let reactionTimes = [];
+let avgReactionTime = 0;
 
 // Difficulty configurations
 const difficulties = {
@@ -27,9 +28,8 @@ function updateDisplay() {
     document.getElementById("state-display").textContent = `STATE: ${gameState}`;
     document.getElementById("difficulty-display").textContent = `DIFFICULTY: ${difficulty.toUpperCase()}`;
     
-    if (reactionTimes.length > 0) {
-        const avgTime = Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length);
-        document.getElementById("performance-display").textContent = `AVG REACTION: ${avgTime}ms`;
+    if (avgReactionTime > 0) {
+        document.getElementById("performance-display").textContent = `AVG REACTION: ${avgReactionTime}ms`;
     }
 }
 
@@ -89,12 +89,16 @@ function handleColorClick(e) {
         colorBtns.forEach(btn => btn.disabled = true);
         if (score > bestScore) {
             bestScore = score;
+            localStorage.setItem('simonSaysBestScore', bestScore);
         }
         updateDisplay();
         return;
     }
     
+    // Update average reaction time incrementally
     reactionTimes.push(reactionTime);
+    const sum = reactionTimes.reduce((a, b) => a + b, 0);
+    avgReactionTime = Math.round(sum / reactionTimes.length);
     
     if (userSequence.length === sequence.length) {
         score++;
@@ -111,6 +115,7 @@ function startGame() {
     userSequence = [];
     score = 0;
     reactionTimes = [];
+    avgReactionTime = 0;
     playing = true;
     gameState = "IDLE";
     updateDisplay();
@@ -119,6 +124,9 @@ function startGame() {
 }
 
 function setDifficulty(level) {
+    // Prevent changing difficulty during active gameplay
+    if (playing) return;
+    
     difficulty = level;
     updateDisplay();
     document.querySelectorAll('.difficulty-btn').forEach(btn => {
