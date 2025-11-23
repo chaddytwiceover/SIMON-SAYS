@@ -4,21 +4,41 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Simon Says</title>
-	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
 	<div class="container">
-		<h1>Simon Says</h1>
-		<div id="score">Score: 0</div>
+		<h1>SIMON SAYS</h1>
+		
+		<div class="info-panel">
+			<div class="info-row">
+				<div id="score">Score: 0 | Best: 0 | Seq: 0</div>
+			</div>
+			<div class="info-row">
+				<div id="state-display" class="state-indicator">STATE: IDLE</div>
+				<div id="difficulty-display" class="difficulty-indicator">DIFFICULTY: MEDIUM</div>
+			</div>
+			<div class="info-row">
+				<div id="performance-display" class="performance-indicator">AVG REACTION: --</div>
+			</div>
+		</div>
+
+		<div class="difficulty-selector">
+			<button class="difficulty-btn" data-difficulty="easy">EASY</button>
+			<button class="difficulty-btn active" data-difficulty="medium">MEDIUM</button>
+			<button class="difficulty-btn" data-difficulty="hard">HARD</button>
+		</div>
+
 		<div class="game-board">
 			<button class="color-btn" id="green"></button>
 			<button class="color-btn" id="red"></button>
 			<button class="color-btn" id="yellow"></button>
 			<button class="color-btn" id="blue"></button>
 		</div>
-		<button id="start-btn">Start Game</button>
+		
+		<button id="start-btn">START GAME</button>
 		<div id="message"></div>
+		
 		<footer class="links-footer">
 			<p>Visit:</p>
 			<div class="links">
