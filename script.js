@@ -1,12 +1,37 @@
 // ==========================================================================
 // SIMON SAYS — Game Logic & Web Audio Synthesizer
+// Hardened for Standalone & Sandboxed Iframe Embedding
 // ==========================================================================
 
+// Safe Storage Helper (avoids DOMException in sandboxed iframes)
+function safeGetStorage(key, fallback = null) {
+    try {
+        if (typeof window !== 'undefined' && 'localStorage' in window) {
+            const val = window.localStorage.getItem(key);
+            return val !== null ? val : fallback;
+        }
+    } catch (e) {
+        // Storage access blocked by sandbox or browser privacy settings
+    }
+    return fallback;
+}
+
+function safeSetStorage(key, value) {
+    try {
+        if (typeof window !== 'undefined' && 'localStorage' in window) {
+            window.localStorage.setItem(key, value);
+        }
+    } catch (e) {
+        // Storage write blocked by sandbox or browser privacy settings
+    }
+}
+
+// Game State Variables
 const colors = ["green", "red", "yellow", "blue"];
 let sequence = [];
 let userSequence = [];
 let score = 0;
-let bestScore = parseInt(localStorage.getItem('simonSaysBestScore')) || 0;
+let bestScore = parseInt(safeGetStorage('simonSaysBestScore', '0'), 10) || 0;
 let playing = false;
 let gameState = "IDLE"; // IDLE, WATCHING, PLAYING, GAME_OVER
 let difficulty = "medium";
@@ -14,7 +39,7 @@ let startTime = 0;
 let reactionTimes = [];
 let avgReactionTime = 0;
 
-// Audio Configuration & Frequencies (Harmonic C-Major triad frequencies)
+// Audio Configuration (Harmonic C-Major triad frequencies)
 const toneFrequencies = {
     red: 261.63,    // C4
     green: 329.63,  // E4
@@ -23,48 +48,48 @@ const toneFrequencies = {
 };
 
 let audioCtx = null;
-let soundMuted = localStorage.getItem('simonSaysMuted') === 'true';
+let soundMuted = safeGetStorage('simonSaysMuted', 'false') === 'true';
 
 // Difficulty timing configurations (ms)
 const difficulties = {
-    easy: { delay: 700, gap: 350, displayTime: 500 },
-    medium: { delay: 500, gap: 200, displayTime: 350 },
-    hard: { delay: 350, gap: 120, displayTime: 220 }
+    easy: { delay: 650, gap: 300, displayTime: 450 },
+    medium: { delay: 450, gap: 180, displayTime: 320 },
+    hard: { delay: 300, gap: 100, displayTime: 200 }
 };
 
-// DOM References
-const colorBtns = colors.map(c => document.getElementById(c));
-const startBtn = document.getElementById("start-btn");
-const messageDisplay = document.getElementById("message");
-
-const scoreVal = document.getElementById("score-val");
-const bestVal = document.getElementById("best-val");
-const seqVal = document.getElementById("seq-val");
-const reactionVal = document.getElementById("reaction-val");
-
-const stateDisplay = document.getElementById("state-display");
-const stateText = document.getElementById("state-text");
-const soundBtn = document.getElementById("sound-btn");
-const soundIconOn = document.getElementById("sound-icon-on");
-const soundIconOff = document.getElementById("sound-icon-off");
-
-// Legacy references for backwards compatibility
-const legacyScore = document.getElementById("score");
-const legacyPerf = document.getElementById("performance-display");
-const legacyDiff = document.getElementById("difficulty-display");
+// DOM References (populated on initialization)
+let colorBtns = [];
+let startBtn = null;
+let messageDisplay = null;
+let scoreVal = null;
+let bestVal = null;
+let seqVal = null;
+let reactionVal = null;
+let stateDisplay = null;
+let stateText = null;
+let soundBtn = null;
+let soundIconOn = null;
+let soundIconOff = null;
+let legacyScore = null;
+let legacyPerf = null;
+let legacyDiff = null;
 
 // ==========================================================================
-// WEB AUDIO SYNTHESIZER
+// WEB AUDIO SYNTHESIZER (Graceful fallback if restricted)
 // ==========================================================================
 function initAudio() {
-    if (!audioCtx) {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-            audioCtx = new AudioContextClass();
+    try {
+        if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                audioCtx = new AudioContextClass();
+            }
         }
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(() => {});
+        }
+    } catch (e) {
+        console.warn('AudioContext initialization failed or blocked:', e);
     }
 }
 
@@ -91,7 +116,7 @@ function playTone(freq, duration = 0.25, type = 'sine') {
         osc.start(now);
         osc.stop(now + duration + 0.05);
     } catch (e) {
-        console.warn('Audio playback error:', e);
+        // Audio output muted/prevented by policy
     }
 }
 
@@ -99,7 +124,7 @@ function playSuccessChime() {
     if (soundMuted) return;
     const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
     notes.forEach((freq, idx) => {
-        setTimeout(() => playTone(freq, 0.22, 'triangle'), idx * 80);
+        setTimeout(() => playTone(freq, 0.2, 'triangle'), idx * 75);
     });
 }
 
@@ -114,29 +139,30 @@ function playGameOverTone() {
         const now = audioCtx.currentTime;
 
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(160, now);
-        osc.frequency.exponentialRampToValueAtTime(60, now + 0.45);
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.4);
 
-        gain.gain.setValueAtTime(0.15, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
         osc.start(now);
-        osc.stop(now + 0.5);
+        osc.stop(now + 0.45);
     } catch (e) {
-        console.warn('Game over tone error:', e);
+        // Ignored
     }
 }
 
 function toggleSound() {
     soundMuted = !soundMuted;
-    localStorage.setItem('simonSaysMuted', soundMuted);
+    safeSetStorage('simonSaysMuted', soundMuted ? 'true' : 'false');
     updateSoundIcon();
 }
 
 function updateSoundIcon() {
+    if (!soundIconOn || !soundIconOff || !soundBtn) return;
     if (soundMuted) {
         soundIconOn.classList.add("hidden");
         soundIconOff.classList.remove("hidden");
@@ -149,38 +175,40 @@ function updateSoundIcon() {
 }
 
 // ==========================================================================
-// DISPLAY UPDATES
+// DISPLAY & HUD UPDATES
 // ==========================================================================
 function updateDisplay() {
-    // HUD Cards
-    scoreVal.textContent = score;
-    bestVal.textContent = bestScore;
-    seqVal.textContent = sequence.length;
-    reactionVal.textContent = avgReactionTime > 0 ? `${avgReactionTime}ms` : "--";
+    if (scoreVal) scoreVal.textContent = score;
+    if (bestVal) bestVal.textContent = bestScore;
+    if (seqVal) seqVal.textContent = sequence.length;
+    if (reactionVal) reactionVal.textContent = avgReactionTime > 0 ? `${avgReactionTime}ms` : "--";
 
-    // State Pill Indicator
-    stateText.textContent = gameState;
-    stateDisplay.className = `state-pill state-${gameState.toLowerCase().replace('_', '-')}`;
-
-    // Prompts and Messages
-    if (gameState === "IDLE") {
-        messageDisplay.textContent = score > 0 ? "Ready for next round" : "Press Start Game to begin sequence";
-    } else if (gameState === "WATCHING") {
-        messageDisplay.textContent = "Watch carefully...";
-    } else if (gameState === "PLAYING") {
-        messageDisplay.textContent = "Your turn! Repeat the pattern";
-    } else if (gameState === "GAME_OVER") {
-        messageDisplay.textContent = `Game Over! Final Score: ${score}. Press Start to retry.`;
+    if (stateText) stateText.textContent = gameState;
+    if (stateDisplay) {
+        stateDisplay.className = `state-pill state-${gameState.toLowerCase().replace('_', '-')}`;
     }
 
-    // Start button text
-    if (playing) {
-        startBtn.textContent = "Restart Game";
-    } else {
-        startBtn.textContent = gameState === "GAME_OVER" ? "Play Again" : "Start Game";
+    if (messageDisplay) {
+        if (gameState === "IDLE") {
+            messageDisplay.textContent = score > 0 ? "Ready for next round" : "Press Start Game to begin sequence";
+        } else if (gameState === "WATCHING") {
+            messageDisplay.textContent = "Watch carefully...";
+        } else if (gameState === "PLAYING") {
+            messageDisplay.textContent = "Your turn! Repeat the pattern";
+        } else if (gameState === "GAME_OVER") {
+            messageDisplay.textContent = `Game Over! Final Score: ${score}. Press Start to retry.`;
+        }
     }
 
-    // Legacy DOM sync if needed
+    if (startBtn) {
+        if (playing) {
+            startBtn.textContent = "Restart Game";
+        } else {
+            startBtn.textContent = gameState === "GAME_OVER" ? "Play Again" : "Start Game";
+        }
+    }
+
+    // Legacy DOM sync for backward compatibility
     if (legacyScore) legacyScore.textContent = `Score: ${score} | Best: ${bestScore} | Seq: ${sequence.length}`;
     if (legacyPerf && avgReactionTime > 0) legacyPerf.textContent = `AVG REACTION: ${avgReactionTime}ms`;
     if (legacyDiff) legacyDiff.textContent = `DIFFICULTY: ${difficulty.toUpperCase()}`;
@@ -205,7 +233,7 @@ function playSequence() {
     userSequence = [];
     gameState = "WATCHING";
     updateDisplay();
-    colorBtns.forEach(btn => btn.disabled = true);
+    colorBtns.forEach(btn => { if (btn) btn.disabled = true; });
 
     let i = 0;
     const config = difficulties[difficulty];
@@ -214,7 +242,7 @@ function playSequence() {
         if (!playing) return;
 
         if (i >= sequence.length) {
-            colorBtns.forEach(btn => btn.disabled = false);
+            colorBtns.forEach(btn => { if (btn) btn.disabled = false; });
             gameState = "PLAYING";
             startTime = Date.now();
             updateDisplay();
@@ -241,45 +269,50 @@ function handleColorClick(e) {
     if (!playing || gameState !== "PLAYING") return;
 
     initAudio();
-    const color = e.currentTarget.id;
+    const target = e.currentTarget || e.target;
+    const color = target ? target.id : null;
+    if (!color || !colors.includes(color)) return;
+
     const clickTime = Date.now();
-    const reactionTime = clickTime - startTime;
+    const reactionTime = startTime > 0 ? (clickTime - startTime) : 0;
 
     userSequence.push(color);
-    activatePad(color, 220);
+    activatePad(color, 200);
 
     const idx = userSequence.length - 1;
 
-    // Wrong guess
+    // Incorrect move
     if (userSequence[idx] !== sequence[idx]) {
         gameState = "GAME_OVER";
         playing = false;
-        colorBtns.forEach(btn => btn.disabled = true);
+        colorBtns.forEach(btn => { if (btn) btn.disabled = true; });
         playGameOverTone();
 
         if (score > bestScore) {
             bestScore = score;
-            localStorage.setItem('simonSaysBestScore', bestScore);
+            safeSetStorage('simonSaysBestScore', String(bestScore));
         }
         updateDisplay();
         return;
     }
 
-    // Reaction tracking
-    reactionTimes.push(reactionTime);
-    const sum = reactionTimes.reduce((a, b) => a + b, 0);
-    avgReactionTime = Math.round(sum / reactionTimes.length);
+    // Record valid reaction time
+    if (reactionTime > 0) {
+        reactionTimes.push(reactionTime);
+        const sum = reactionTimes.reduce((a, b) => a + b, 0);
+        avgReactionTime = Math.round(sum / reactionTimes.length);
+    }
 
-    // Completed current sequence
+    // Sequence completed successfully
     if (userSequence.length === sequence.length) {
         score++;
         gameState = "IDLE";
-        colorBtns.forEach(btn => btn.disabled = true);
+        colorBtns.forEach(btn => { if (btn) btn.disabled = true; });
         playSuccessChime();
         updateDisplay();
-        setTimeout(nextRound, 1000);
+        setTimeout(nextRound, 900);
     } else {
-        startTime = Date.now(); // Reset timer for the next press
+        startTime = Date.now(); // Reset timer for next input in sequence
     }
 }
 
@@ -293,12 +326,12 @@ function startGame() {
     playing = true;
     gameState = "IDLE";
     updateDisplay();
-    colorBtns.forEach(btn => btn.disabled = true);
-    setTimeout(nextRound, 800);
+    colorBtns.forEach(btn => { if (btn) btn.disabled = true; });
+    setTimeout(nextRound, 600);
 }
 
 function setDifficulty(level) {
-    // Prevent changing difficulty during active gameplay
+    // Prevent changing difficulty during gameplay
     if (playing) return;
 
     difficulty = level;
@@ -309,23 +342,53 @@ function setDifficulty(level) {
 }
 
 // ==========================================================================
-// EVENT LISTENERS & INITIALIZATION
+// INITIALIZATION
 // ==========================================================================
-colorBtns.forEach(btn => {
-    btn.addEventListener("click", handleColorClick);
-});
+function initGame() {
+    colorBtns = colors.map(c => document.getElementById(c)).filter(Boolean);
+    startBtn = document.getElementById("start-btn");
+    messageDisplay = document.getElementById("message");
 
-startBtn.addEventListener("click", () => {
-    initAudio();
-    startGame();
-});
+    scoreVal = document.getElementById("score-val");
+    bestVal = document.getElementById("best-val");
+    seqVal = document.getElementById("seq-val");
+    reactionVal = document.getElementById("reaction-val");
 
-soundBtn.addEventListener("click", toggleSound);
+    stateDisplay = document.getElementById("state-display");
+    stateText = document.getElementById("state-text");
+    soundBtn = document.getElementById("sound-btn");
+    soundIconOn = document.getElementById("sound-icon-on");
+    soundIconOff = document.getElementById("sound-icon-off");
 
-document.querySelectorAll('.diff-btn').forEach(btn => {
-    btn.addEventListener('click', () => setDifficulty(btn.dataset.difficulty));
-});
+    legacyScore = document.getElementById("score");
+    legacyPerf = document.getElementById("performance-display");
+    legacyDiff = document.getElementById("difficulty-display");
 
-// Sound and display initialization
-updateSoundIcon();
-updateDisplay();
+    colorBtns.forEach(btn => {
+        btn.addEventListener("click", handleColorClick);
+    });
+
+    if (startBtn) {
+        startBtn.addEventListener("click", () => {
+            initAudio();
+            startGame();
+        });
+    }
+
+    if (soundBtn) {
+        soundBtn.addEventListener("click", toggleSound);
+    }
+
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+        btn.addEventListener('click', () => setDifficulty(btn.dataset.difficulty));
+    });
+
+    updateSoundIcon();
+    updateDisplay();
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGame);
+} else {
+    initGame();
+}
