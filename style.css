@@ -1,256 +1,753 @@
+/* ==========================================================================
+   SIMON SAYS — Redesigned for chaddytwiceover.com
+   Aesthetic: Obsidian dark, editorial serif, monospace accents, glassmorphism
+   ========================================================================== */
+
 :root {
-    --bg-color: #0a0a0a;
-    --primary-color: #1a1a1a;
-    --border-color: #333;
-    --text-color: #e0e0e0;
-    --accent-color: #00ff00;
-    --green: #00ff00;
-    --red: #ff0000;
-    --yellow: #ffff00;
-    --blue: #00bfff;
-    --state-idle: #666;
-    --state-watching: #ffaa00;
-    --state-playing: #00ff00;
-    --state-gameover: #ff0000;
+    /* Base Color Tokens */
+    --bg: #0a0a0a;
+    --bg-soft: rgba(20, 20, 20, 0.65);
+    --bg-card: rgba(24, 24, 24, 0.55);
+    --bg-raise: #1e1e1e;
+    --border: rgba(255, 255, 255, 0.09);
+    --border-hover: rgba(255, 255, 255, 0.22);
+    --text: #edebe6;
+    --text-dim: #9a9a95;
+    --text-faint: #5a5a58;
+
+    /* Theme Neon Accents */
+    --color-mint: #7affd2;
+    --color-lime: #d6ff5c;
+    --color-coral: #ff6b6b;
+    --color-amber: #ffb86b;
+
+    /* Simon Pad Mapping */
+    --pad-green: #d6ff5c;
+    --pad-green-glow: rgba(214, 255, 92, 0.6);
+    --pad-red: #ff6b6b;
+    --pad-red-glow: rgba(255, 107, 107, 0.6);
+    --pad-yellow: #ffb86b;
+    --pad-yellow-glow: rgba(255, 184, 107, 0.6);
+    --pad-blue: #7affd2;
+    --pad-blue-glow: rgba(122, 255, 210, 0.6);
+
+    /* Typography */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-serif: 'Newsreader', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* Transitions */
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --transition-fast: 0.15s var(--ease-out);
+    --transition-base: 0.2s var(--ease-out);
 }
 
-* {
+/* Reset & Box Sizing */
+*, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+::selection {
+    background: #edebe6;
+    color: #0a0a0a;
+}
+
+html {
+    background-color: var(--bg);
+    color-scheme: dark;
+    scroll-behavior: smooth;
+}
+
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Courier New', monospace;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
     margin: 0;
-    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background Texture: Dot Grid Pattern from chaddytwiceover.com */
+body::before {
+    content: "";
+    pointer-events: none;
+    opacity: 0.035;
+    z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%23ffffff' fill-opacity='0.9'%3E%3Ccircle cx='8' cy='12' r='1'/%3E%3Ccircle cx='37' cy='84' r='1'/%3E%3Ccircle cx='66' cy='24' r='1'/%3E%3Ccircle cx='98' cy='58' r='1'/%3E%3Ccircle cx='26' cy='42' r='1'/%3E%3Ccircle cx='114' cy='94' r='1'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 120px 120px;
+    position: fixed;
+    inset: 0;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Accessibility Skip Link */
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 1rem;
+    z-index: 200;
+    background: var(--text);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.5rem 0.75rem;
+    border-radius: 9999px;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 1rem;
+}
+
+/* ==========================================================================
+   PRIMARY NAVIGATION (matches chaddytwiceover.com)
+   ========================================================================== */
+.site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid var(--border);
+    background-color: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.nav-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.nav-brand {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    transition: color var(--transition-fast);
+}
+
+.nav-brand:hover {
+    color: var(--text);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+}
+
+.nav-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 0.9rem;
+    border-radius: 9999px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    transition: all var(--transition-fast);
+}
+
+.nav-pill:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+}
+
+.nav-pill.active {
+    background-color: var(--text);
+    color: var(--bg);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   MAIN LAYOUT & HEADER
+   ========================================================================== */
+.main-wrapper {
+    position: relative;
+    z-index: 1;
+    min-height: calc(100vh - 65px);
+    padding: 2.5rem 1.25rem 4rem;
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: 100vh;
 }
 
-.container {
+.game-container {
     width: 100%;
-    max-width: 500px;
-    background-color: var(--primary-color);
-    border: 2px solid var(--border-color);
-    padding: 20px;
-}
-
-h1 {
-    font-size: 2em;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: var(--accent-color);
-    letter-spacing: 4px;
-    text-align: center;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 10px;
-}
-
-.info-panel {
-    background-color: #000;
-    border: 1px solid var(--border-color);
-    padding: 12px;
-    margin-bottom: 15px;
-    font-size: 0.85em;
-    letter-spacing: 1px;
-}
-
-.info-row {
+    max-width: 580px;
     display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.game-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.header-meta {
+    display: flex;
+    align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 0.25rem;
 }
 
-.info-row:last-child {
-    margin-bottom: 0;
+.back-link {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    transition: color var(--transition-fast);
 }
 
-#score {
-    font-size: 1em;
-    color: var(--accent-color);
-    font-weight: bold;
-    width: 100%;
+.back-link:hover {
+    color: var(--color-mint);
 }
 
-.state-indicator,
-.difficulty-indicator,
-.performance-indicator {
-    font-size: 0.9em;
-    padding: 4px 8px;
-    border: 1px solid var(--border-color);
-    background-color: var(--primary-color);
-    flex: 1;
+.live-pill {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    border: 1px solid rgba(122, 255, 210, 0.4);
+    background: rgba(122, 255, 210, 0.08);
+    color: var(--color-mint);
+}
+
+.eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+}
+
+.game-title {
+    font-family: var(--font-serif);
+    font-size: clamp(2.4rem, 7vw, 3.6rem);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-transform: lowercase;
+    color: var(--text);
+}
+
+.game-subtitle {
+    font-size: 0.925rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+    max-width: 54ch;
+}
+
+.stack-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+}
+
+/* ==========================================================================
+   GAME CARD SURFACE
+   ========================================================================== */
+.game-card {
+    background-color: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 1.75rem;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 0 42px rgba(237, 235, 230, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.game-card:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* ==========================================================================
+   HUD & PERFORMANCE METRICS
+   ========================================================================== */
+.hud-panel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+}
+
+.metric-card {
+    background: rgba(10, 10, 10, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 0.65rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    margin-right: 8px;
+    transition: border-color var(--transition-fast);
 }
 
-.state-indicator:last-child,
-.difficulty-indicator:last-child,
-.performance-indicator:last-child {
-    margin-right: 0;
+.metric-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin-bottom: 2px;
 }
 
+.metric-value {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* ==========================================================================
+   CONTROLS ROW: State Pill, Difficulty, Audio
+   ========================================================================== */
+.controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.25rem 0;
+}
+
+/* State Badge */
+.state-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.3);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    transition: all var(--transition-fast);
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--text-faint);
+    transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.state-idle .status-dot {
+    background-color: var(--text-faint);
+}
+
+.state-watching .status-dot {
+    background-color: var(--color-amber);
+    box-shadow: 0 0 8px var(--color-amber);
+}
+
+.state-playing .status-dot {
+    background-color: var(--color-mint);
+    box-shadow: 0 0 8px var(--color-mint);
+}
+
+.state-game-over .status-dot {
+    background-color: var(--color-coral);
+    box-shadow: 0 0 8px var(--color-coral);
+}
+
+/* Difficulty Selector Pills */
 .difficulty-selector {
     display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 3px;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
 }
 
-.difficulty-btn {
-    flex: 1;
-    background-color: var(--primary-color);
-    color: var(--text-color);
-    border: 2px solid var(--border-color);
-    padding: 10px;
-    font-size: 0.9em;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
+.diff-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
     cursor: pointer;
-    letter-spacing: 2px;
-    transition: all 0.1s ease;
+    transition: all var(--transition-fast);
 }
 
-.difficulty-btn:hover {
-    background-color: var(--border-color);
-    border-color: var(--text-color);
+.diff-btn:hover:not(:disabled) {
+    color: var(--text);
 }
 
-.difficulty-btn.active {
-    background-color: var(--accent-color);
-    color: #000;
-    border-color: var(--accent-color);
+.diff-btn.active {
+    background-color: var(--text);
+    color: var(--bg);
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.diff-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Icon Button (Audio Toggle) */
+.icon-btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--text-dim);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+    border-color: var(--border-hover);
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sound-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ==========================================================================
+   SIMON SAYS GAME BOARD
+   ========================================================================== */
+.board-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0;
 }
 
 .game-board {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    aspect-ratio: 1 / 1;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin: 20px 0;
-    border: 2px solid var(--border-color);
-    padding: 10px;
-    background-color: #000;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+    padding: 14px;
+    background: #111111;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 36px;
+    box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.9), 0 12px 36px rgba(0, 0, 0, 0.6);
 }
 
-.color-btn {
-    aspect-ratio: 1 / 1;
-    border: 2px solid var(--border-color);
+/* Color Pads */
+.color-pad {
+    appearance: none;
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
     cursor: pointer;
     outline: none;
-    transition: all 0.05s ease;
-    filter: brightness(0.5);
     position: relative;
+    overflow: hidden;
+    filter: brightness(0.65);
+    transition: filter 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    will-change: filter, transform, box-shadow;
 }
 
-.color-btn:disabled {
+/* Rounded Corner Styling for Quadrant Aesthetic */
+.pad-green {
+    border-top-left-radius: 24px;
+    background: radial-gradient(circle at 35% 35%, rgba(214, 255, 92, 0.45) 0%, rgba(18, 22, 14, 0.95) 75%);
+    border-color: rgba(214, 255, 92, 0.25);
+}
+
+.pad-red {
+    border-top-right-radius: 24px;
+    background: radial-gradient(circle at 65% 35%, rgba(255, 107, 107, 0.45) 0%, rgba(24, 15, 15, 0.95) 75%);
+    border-color: rgba(255, 107, 107, 0.25);
+}
+
+.pad-yellow {
+    border-bottom-left-radius: 24px;
+    background: radial-gradient(circle at 35% 65%, rgba(255, 184, 107, 0.45) 0%, rgba(24, 20, 14, 0.95) 75%);
+    border-color: rgba(255, 184, 107, 0.25);
+}
+
+.pad-blue {
+    border-bottom-right-radius: 24px;
+    background: radial-gradient(circle at 65% 65%, rgba(122, 255, 210, 0.45) 0%, rgba(14, 22, 20, 0.95) 75%);
+    border-color: rgba(122, 255, 210, 0.25);
+}
+
+/* Hover State */
+.color-pad:not(:disabled):hover {
+    filter: brightness(0.85);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Disabled State during sequence playback */
+.color-pad:disabled {
     cursor: not-allowed;
-    filter: brightness(0.3);
 }
 
-.color-btn:not(:disabled):hover {
-    filter: brightness(0.7);
-    border-width: 3px;
+/* Active / Lit State (Luminescence) */
+.pad-green.active {
+    background: var(--pad-green) !important;
+    filter: brightness(1.25) !important;
+    border-color: #ffffff !important;
+    transform: scale(0.975);
+    box-shadow: 0 0 36px var(--pad-green-glow), inset 0 0 16px rgba(255, 255, 255, 0.8);
 }
 
-#green { background-color: var(--green); }
-#red { background-color: var(--red); }
-#yellow { background-color: var(--yellow); }
-#blue { background-color: var(--blue); }
-
-.color-btn.active {
-    filter: brightness(1);
-    transform: scale(0.98);
-    border-width: 4px;
-    border-color: #fff;
+.pad-red.active {
+    background: var(--pad-red) !important;
+    filter: brightness(1.25) !important;
+    border-color: #ffffff !important;
+    transform: scale(0.975);
+    box-shadow: 0 0 36px var(--pad-red-glow), inset 0 0 16px rgba(255, 255, 255, 0.8);
 }
 
-#start-btn {
-    background-color: var(--primary-color);
-    color: var(--accent-color);
-    border: 2px solid var(--accent-color);
-    padding: 12px 40px;
-    font-size: 1em;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
-    cursor: pointer;
-    letter-spacing: 3px;
-    transition: all 0.1s ease;
-    width: 100%;
+.pad-yellow.active {
+    background: var(--pad-yellow) !important;
+    filter: brightness(1.25) !important;
+    border-color: #ffffff !important;
+    transform: scale(0.975);
+    box-shadow: 0 0 36px var(--pad-yellow-glow), inset 0 0 16px rgba(255, 255, 255, 0.8);
 }
 
-#start-btn:hover {
-    background-color: var(--accent-color);
-    color: #000;
+.pad-blue.active {
+    background: var(--pad-blue) !important;
+    filter: brightness(1.25) !important;
+    border-color: #ffffff !important;
+    transform: scale(0.975);
+    box-shadow: 0 0 36px var(--pad-blue-glow), inset 0 0 16px rgba(255, 255, 255, 0.8);
 }
 
-#start-btn:active {
-    transform: scale(0.98);
-}
-
-#message {
-    margin-top: 15px;
-    font-size: 0.9em;
-    min-height: 20px;
-    color: var(--accent-color);
-    text-align: center;
-    letter-spacing: 1px;
-}
-
-.links-footer {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-color);
-    text-align: center;
-}
-
-.links-footer p {
-    margin: 0 0 8px 0;
-    font-size: 0.75em;
-    color: var(--text-color);
-    opacity: 0.6;
-    letter-spacing: 1px;
-}
-
-.links {
+/* Center Hub */
+.board-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background-color: #0d0d0d;
+    border: 2px solid rgba(255, 255, 255, 0.1);
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    box-shadow: 0 0 18px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: 5;
+}
+
+.hub-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--text-dim);
+}
+
+/* ==========================================================================
+   PROMPTS & ACTIONS
+   ========================================================================== */
+.game-message {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    text-align: center;
+    min-height: 20px;
+    transition: color var(--transition-fast);
+}
+
+.start-btn {
+    appearance: none;
+    border: none;
+    width: 100%;
+    min-height: 48px;
+    border-radius: 9999px;
+    background-color: var(--text);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.start-btn:hover {
+    background-color: var(--color-mint);
+    color: #000;
+    transform: translateY(-1px);
+    box-shadow: 0 0 24px rgba(122, 255, 210, 0.35);
+}
+
+.start-btn:active {
+    transform: translateY(0);
+}
+
+/* ==========================================================================
+   FOOTER (matches chaddytwiceover.com)
+   ========================================================================== */
+.site-footer {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     flex-wrap: wrap;
+    gap: 0.75rem;
 }
 
-.links a {
-    color: var(--accent-color);
-    text-decoration: none;
-    font-size: 0.75em;
-    transition: opacity 0.2s ease;
-    letter-spacing: 1px;
+.copyright {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
 }
 
-.links a:hover {
-    opacity: 0.7;
+.footer-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.separator {
-    color: var(--text-color);
-    opacity: 0.4;
-    font-size: 0.75em;
+.footer-links a {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    transition: color var(--transition-fast);
 }
 
-/* Performance optimization: use will-change for animated elements */
-.color-btn {
-    will-change: filter, transform, border-width;
+.footer-links a:hover {
+    color: var(--text);
 }
 
-/* Reduce motion for accessibility */
+.footer-links .sep {
+    color: var(--text-faint);
+    font-size: 10px;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN & ACCESSIBILITY
+   ========================================================================== */
+@media (max-width: 480px) {
+    .hud-panel {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .game-card {
+        padding: 1.25rem;
+        border-radius: 20px;
+    }
+
+    .game-board {
+        border-radius: 28px;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .board-hub {
+        width: 72px;
+        height: 72px;
+    }
+
+    .hub-label {
+        font-size: 9px;
+    }
+
+    .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .difficulty-selector {
+        justify-content: center;
+    }
+
+    .site-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .color-btn,
-    .difficulty-btn,
-    #start-btn {
-        transition: none;
+    .color-pad,
+    .start-btn,
+    .diff-btn,
+    .nav-pill,
+    .icon-btn {
+        transition: none !important;
     }
 }

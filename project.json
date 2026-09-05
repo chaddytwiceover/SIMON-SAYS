@@ -1,33 +1,35 @@
 {
   "id": "simon-says",
   "title": "Simon Says Game",
-  "description": "A classic memory game where players must repeat an increasingly complex sequence of colors. Test your memory and concentration skills!",
+  "description": "A classic memory game where players repeat an increasingly complex sequence of colors and synthesizer tones. Redesigned to match the chaddytwiceover.com lab aesthetic.",
   "category": "Game",
-  "technologies": ["HTML", "CSS", "JavaScript"],
+  "technologies": ["HTML5", "CSS3", "JavaScript", "Web Audio API"],
   "features": [
-    "Interactive color sequence gameplay",
-    "Progressive difficulty scaling",
-    "Real-time score tracking",
-    "Visual feedback and animations",
-    "Responsive design"
+    "Interactive neon color sequence gameplay",
+    "Web Audio API synthesizer with harmonic chords and game audio",
+    "Configurable difficulty scaling (Easy, Medium, Hard)",
+    "Real-time HUD with score, best score, stage, and average reaction time tracking",
+    "Audio mute toggle with persistent local storage",
+    "Modern obsidian glassmorphism aesthetic matching chaddytwiceover.com",
+    "Fully responsive design with accessibility reduced-motion support"
   ],
-  "demo_url": "./SIMON SAYS/index.html",
-  "github_url": "",
-  "image": "./SIMON SAYS/screenshot.png",
+  "demo_url": "./index.html",
+  "github_url": "https://github.com/chaddytwiceover/SIMON-SAYS",
+  "image": "./screenshot.png",
   "date_created": "2025-10-08",
   "status": "completed",
-  "difficulty": "beginner",
+  "difficulty": "intermediate",
   "estimated_time": "2-3 hours",
   "learning_objectives": [
     "DOM manipulation",
-    "Event handling",
-    "Game state management",
-    "CSS animations",
-    "Array operations"
+    "Event handling & State Machine flow",
+    "Web Audio API synthesis & tone shaping",
+    "Glassmorphic CSS styling & design systems",
+    "Array operations & reaction time computation"
   ],
   "file_structure": {
-    "index.html": "Main game interface",
-    "style.css": "Game styling and animations",
-    "script.js": "Game logic and functionality"
+    "index.html": "Main game interface and HUD",
+    "style.css": "Design tokens, glassmorphism, responsive styles, and animations",
+    "script.js": "Game logic, state machine, and Web Audio synthesizer"
   }
 }

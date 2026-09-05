@@ -1,53 +1,148 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Simon Says</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<meta name="theme-color" content="#0a0a0a">
+	<title>Simon Says — chaddytwiceover</title>
+	<meta name="description" content="A refined Web Audio memory game where players repeat an increasingly complex sequence of neon color frequencies.">
+	
+	<!-- Fonts matching chaddytwiceover.com -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+	
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<div class="container">
-		<h1>SIMON SAYS</h1>
-		
-		<div class="info-panel">
-			<div class="info-row">
-				<div id="score">Score: 0 | Best: 0 | Seq: 0</div>
-			</div>
-			<div class="info-row">
-				<div id="state-display" class="state-indicator">STATE: IDLE</div>
-				<div id="difficulty-display" class="difficulty-indicator">DIFFICULTY: MEDIUM</div>
-			</div>
-			<div class="info-row">
-				<div id="performance-display" class="performance-indicator">AVG REACTION: --</div>
-			</div>
-		</div>
+	<a href="#main-content" class="skip-link">Skip to content</a>
 
-		<div class="difficulty-selector">
-			<button class="difficulty-btn" data-difficulty="easy">EASY</button>
-			<button class="difficulty-btn active" data-difficulty="medium">MEDIUM</button>
-			<button class="difficulty-btn" data-difficulty="hard">HARD</button>
+	<!-- Top Navigation Bar matching chaddytwiceover.com -->
+	<nav class="site-nav" aria-label="Primary navigation">
+		<div class="nav-container">
+			<a class="nav-brand" href="https://chaddytwiceover.com" target="_blank" rel="noopener noreferrer">chaddytwiceover</a>
+			<ul class="nav-links">
+				<li><a class="nav-pill" href="https://chaddytwiceover.com" target="_blank" rel="noopener noreferrer">Home</a></li>
+				<li><a class="nav-pill" href="https://chaddytwiceover.com/lab" target="_blank" rel="noopener noreferrer">Lab</a></li>
+				<li><a class="nav-pill active" href="#">Simon Says</a></li>
+			</ul>
 		</div>
+	</nav>
 
-		<div class="game-board">
-			<button class="color-btn" id="green"></button>
-			<button class="color-btn" id="red"></button>
-			<button class="color-btn" id="yellow"></button>
-			<button class="color-btn" id="blue"></button>
+	<main id="main-content" class="main-wrapper">
+		<div class="game-container">
+			
+			<!-- Header metadata matching Lab detail view -->
+			<header class="game-header">
+				<div class="header-meta">
+					<a class="back-link" href="https://chaddytwiceover.com/lab" target="_blank" rel="noopener noreferrer">← Back to Lab</a>
+					<span class="live-pill">Live</span>
+				</div>
+				<p class="eyebrow">Playable Lab / experiments + prototypes</p>
+				<h1 class="game-title">simon says</h1>
+				<p class="game-subtitle">A classic memory game where players repeat an increasingly complex sequence of neon color frequencies. Test your memory and concentration skills.</p>
+				
+				<div class="stack-tags" aria-label="Project technologies">
+					<span class="tag">JavaScript</span>
+					<span class="tag">Web Audio API</span>
+					<span class="tag">State Machine</span>
+				</div>
+			</header>
+
+			<!-- Interactive Game Surface -->
+			<section class="game-card" aria-label="Game board and controls">
+				
+				<!-- HUD / Performance Metrics -->
+				<div class="hud-panel" aria-label="Game statistics">
+					<div class="metric-card">
+						<span class="metric-label">SCORE</span>
+						<span class="metric-value" id="score-val">0</span>
+					</div>
+					<div class="metric-card">
+						<span class="metric-label">BEST</span>
+						<span class="metric-value" id="best-val">0</span>
+					</div>
+					<div class="metric-card">
+						<span class="metric-label">STAGE</span>
+						<span class="metric-value" id="seq-val">0</span>
+					</div>
+					<div class="metric-card">
+						<span class="metric-label">REACTION</span>
+						<span class="metric-value" id="reaction-val">--</span>
+					</div>
+				</div>
+
+				<!-- Secondary Control Row: State, Difficulty, Audio -->
+				<div class="controls-row">
+					<div id="state-display" class="state-pill state-idle">
+						<span class="status-dot"></span>
+						<span id="state-text">IDLE</span>
+					</div>
+
+					<div class="difficulty-selector" role="radiogroup" aria-label="Select difficulty">
+						<button type="button" class="diff-btn" data-difficulty="easy">Easy</button>
+						<button type="button" class="diff-btn active" data-difficulty="medium">Medium</button>
+						<button type="button" class="diff-btn" data-difficulty="hard">Hard</button>
+					</div>
+
+					<button type="button" id="sound-btn" class="icon-btn" aria-label="Toggle sound" title="Toggle audio synthesizer">
+						<!-- Volume Up Icon -->
+						<svg id="sound-icon-on" class="sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+							<path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+							<path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+						</svg>
+						<!-- Volume Mute Icon -->
+						<svg id="sound-icon-off" class="sound-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+							<line x1="23" y1="9" x2="17" y2="15"></line>
+							<line x1="17" y1="9" x2="23" y2="15"></line>
+						</svg>
+					</button>
+				</div>
+
+				<!-- Tactile Simon Pad Matrix -->
+				<div class="board-wrapper">
+					<div class="game-board" id="game-board">
+						<button class="color-pad pad-green" id="green" aria-label="Green pad (E4 tone)"></button>
+						<button class="color-pad pad-red" id="red" aria-label="Red pad (C4 tone)"></button>
+						<button class="color-pad pad-yellow" id="yellow" aria-label="Yellow pad (G4 tone)"></button>
+						<button class="color-pad pad-blue" id="blue" aria-label="Blue pad (C5 tone)"></button>
+						<div class="board-hub">
+							<span class="hub-ring"></span>
+							<span class="hub-label">SIMON</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Message Prompter -->
+				<div id="message" class="game-message" aria-live="polite">Press Start Game to begin sequence</div>
+
+				<!-- Primary Action Button -->
+				<div class="action-row">
+					<button id="start-btn" class="start-btn">Start Game</button>
+				</div>
+
+			</section>
+
+			<!-- Legacy hidden elements for backward compatibility if queried -->
+			<div style="display:none;" id="score">Score: 0 | Best: 0 | Seq: 0</div>
+			<div style="display:none;" id="performance-display">AVG REACTION: --</div>
+			<div style="display:none;" id="difficulty-display">DIFFICULTY: MEDIUM</div>
+
+			<!-- Footer matching chaddytwiceover.com -->
+			<footer class="site-footer">
+				<p class="copyright">© 2026 CHADDYTWICEOVER</p>
+				<div class="footer-links">
+					<a href="https://chaddytwiceover.com" target="_blank" rel="noopener noreferrer">chaddytwiceover.com</a>
+					<span class="sep">/</span>
+					<a href="https://chaddytwiceover.com/lab" target="_blank" rel="noopener noreferrer">lab</a>
+				</div>
+			</footer>
+
 		</div>
-		
-		<button id="start-btn">START GAME</button>
-		<div id="message"></div>
-		
-		<footer class="links-footer">
-			<p>Visit:</p>
-			<div class="links">
-				<a href="https://chaddytwiceover.com" target="_blank">chaddytwiceover.com</a>
-				<span class="separator">|</span>
-				<a href="https://lab.chaddytwiceover.com" target="_blank">lab.chaddytwiceover.com</a>
-			</div>
-		</footer>
-	</div>
+	</main>
+
 	<script src="script.js"></script>
 </body>
 </html>
